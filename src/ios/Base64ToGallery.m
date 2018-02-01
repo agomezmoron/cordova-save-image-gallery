@@ -27,7 +27,8 @@
             
             if (base64String != nil && [base64String length] > 0) {
             
-                NSData *imageData = [[[NSData alloc] initWithBase64EncodedString:base64String options:0] autorelease];
+                // NSData *imageData = [[[NSData alloc] initWithBase64EncodedString:base64String options:0] autorelease];
+                 NSData *imageData = [[NSData alloc]initWithBase64EncodedString:base64String options:(NSDataBase64DecodingIgnoreUnknownCharacters)];
                 UIImage *image = [[[UIImage alloc] initWithData:imageData] autorelease];
 
                 // converts the UIImage to NSData
