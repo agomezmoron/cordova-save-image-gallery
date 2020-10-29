@@ -1,7 +1,9 @@
 package it.nexxa.base64ToGallery;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 
 import org.apache.cordova.CallbackContext;
@@ -40,6 +42,7 @@ public class Base64ToGallery extends CordovaPlugin {
     String base64               = args.optString(0);
     String filePrefix           = args.optString(1);
     boolean mediaScannerEnabled = args.optBoolean(2);
+    String  saveType            = args.optString(3);
 
     // isEmpty() requires API level 9
     if (base64.equals(EMPTY_STR)) {
@@ -48,6 +51,24 @@ public class Base64ToGallery extends CordovaPlugin {
 
     // Create the bitmap from the base64 string
     byte[] decodedString = Base64.decode(base64, Base64.DEFAULT);
+    // GIF
+    if (saveType.contentEquals("GIF")) {
+      ByteArrayInputStream is = new ByteArrayInputStream(decodedString);
+      File imageFile = saveGifFile(is);
+
+      if (imageFile == null) {
+        callbackContext.error("Error while saving image");
+      }
+
+      // Update image gallery
+      if (mediaScannerEnabled) {
+        scanPhoto(imageFile);
+      }
+
+      callbackContext.success(imageFile.toString());
+      return true;
+    }
+
     Bitmap bmp           = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
     if (bmp == null) {
@@ -122,7 +143,37 @@ public class Base64ToGallery extends CordovaPlugin {
 
     return retVal;
   }
+  private File saveGifFile(ByteArrayInputStream inStream) {
+    File retVal = null;
+    File folder;
+    folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+    try {
+    if (!folder.exists()) {
+      folder.mkdirs();
+    }
+    File newFile = new File(folder, String.valueOf(System.currentTimeMillis()) + ".gif");
+    if (!newFile.exists()) {
+      newFile.createNewFile();
+    }
 
+    String newPath = newFile.getPath();
+    int bytesum = 0;
+    int byteread = 0;
+
+      FileOutputStream fs = new FileOutputStream(newPath);
+      byte[] buffer = new byte[1444];
+      int length;
+      while ((byteread = inStream.read(buffer)) != -1) {
+        bytesum += byteread; //字节数 文件大小
+        System.out.println(bytesum);
+        fs.write(buffer, 0, byteread);
+      }
+      retVal = newFile;
+    } catch (Exception e) {
+      Log.e("Base64ToGallery", "An exception occured while saving image: " + e.toString());
+    }
+    return retVal;
+  }
   /**
    * Invoke the system's media scanner to add your photo to the Media Provider's database,
    * making it available in the Android Gallery application and to other apps.

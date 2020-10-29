@@ -13,7 +13,7 @@ var assign = require('./object.assign-polyfill');
 // Consts
 var SERVICE  = 'Base64ToGallery';
 var ACTION   = 'saveImageDataToLibrary';
-var ARGS     = ['data', 'prefix', 'mediaScanner'];
+var ARGS     = ['data', 'prefix', 'mediaScanner', 'type'];
 var DEFAULTS = { prefix: 'img_', mediaScanner: true };
 
 /**
@@ -37,7 +37,7 @@ module.exports = function(data, options, success, fail) {
 
   // Prepare base64 string
   data = data.replace(/data:image\/png;base64,/, '');
-
+  data = data.replace(/data:image\/gif;base64,/, '');
   // And add it to the Service's Action arguments
   actionArgs.unshift(data);
 

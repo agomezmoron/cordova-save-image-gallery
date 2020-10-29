@@ -12,6 +12,7 @@
 
 #import "Base64ToGallery.h"
 #import <Cordova/CDV.h>
+#import <Photos/Photos.h>
 
 @implementation Base64ToGallery
 
@@ -24,7 +25,24 @@
             NSString *base64String = [command.arguments objectAtIndex:0];
             NSString *prefix = [command.arguments objectAtIndex:1];
             bool cameraRoll = [[command.arguments objectAtIndex:2] boolValue];
+            NSString* saveType =[command.arguments objectAtIndex:3];
+//            [[NSString alloc] initWithString:@"GIF"];
             
+            if ([saveType isEqualToString:@"GIF"]) {
+                if (base64String != nil && [base64String length] > 0) {
+                    NSData *imageData = [[[NSData alloc] initWithBase64EncodedString:base64String options:0] autorelease];
+//                    NSData *imageData = [[NSData alloc]initWithBase64EncodedString:base64String options:(NSDataBase64DecodingIgnoreUnknownCharacters)];
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                        PHAssetResourceCreationOptions *options = [[PHAssetResourceCreationOptions alloc] init];
+                        [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:imageData options:options];
+                    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                        NSLog(@"：%d",success);
+                        CDVPluginResult * pluginResult  = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@'gifimgpath'];
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                    }];
+                }
+                return;
+            }
             if (base64String != nil && [base64String length] > 0) {
             
                 // NSData *imageData = [[[NSData alloc] initWithBase64EncodedString:base64String options:0] autorelease];
